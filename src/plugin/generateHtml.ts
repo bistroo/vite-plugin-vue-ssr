@@ -1,7 +1,9 @@
-import { parse } from 'node-html-parser'
-import type { VueHeadClient, MergeHead } from '@unhead/vue'
-import { renderSSRHead } from '@unhead/ssr'
-import { State } from '../types'
+import {parse} from 'node-html-parser'
+import type {MergeHead, VueHeadClient} from '@unhead/vue'
+import {renderSSRHead} from '@unhead/ssr'
+import {State} from '../types'
+import {uneval} from 'devalue'
+import {deepRemoveKeys} from "../utils/deepRemoveKeys";
 
 function rawAttributesToAttributes(raw: string) {
   const attrs: Record<string, any> = {}
@@ -26,7 +28,7 @@ export async function generateHtml(template: string,
                                    state: State,
                                    head: VueHeadClient<MergeHead>,
                                    styles?: string) {
-  const root = parse(template, { comment: true })
+  const root = parse(template, {comment: true})
 
   root.getElementById('app')?.set_content(rendered)
 
@@ -42,9 +44,8 @@ export async function generateHtml(template: string,
   const html = root.querySelector('html')
 
   if (state.value !== undefined) {
-    const { uneval } = await import('devalue')
-
-    body?.insertAdjacentHTML('beforeend', `<script id="state">window.__INITIAL_STATE__ = ${uneval(state.value)}</script>`)
+    const sanitizedState = deepRemoveKeys(state.value, ['token', 'password'])
+    body?.insertAdjacentHTML('beforeend', `<script id="state">window.__INITIAL_STATE__ = ${uneval(sanitizedState)}</script>`)
   }
 
   if (teleports['#teleports'] !== undefined) {
