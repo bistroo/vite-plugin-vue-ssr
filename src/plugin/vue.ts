@@ -20,9 +20,9 @@ type VueSSR = {
 export async function vueSSR(App: Component, params: Params, cb?: CallbackFn, ssrBuild = false, ssr = false): Promise<VueSSR> {
   const { routes, scrollBehavior } = params
 
-  const state: State = {
+  const state: State = () => ({
     value: undefined,
-  }
+  })
 
   if (!ssr) {
     // @ts-ignore
